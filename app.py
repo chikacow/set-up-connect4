@@ -16,6 +16,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
+@app.get("/api/test")
+async def health_check():
+    return {"status": "ok", "message": "Server is running"}
+
 class GameState(BaseModel):
     board: List[List[int]]
     current_player: int
@@ -23,8 +28,9 @@ class GameState(BaseModel):
 
 class AIResponse(BaseModel):
     move: int
-#nvnhat04
-@app.post("/api/connect4-move")
+
+
+
 async def make_move(game_state: GameState) -> AIResponse:
     try:
         # print("Received game state:")
