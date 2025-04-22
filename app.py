@@ -89,11 +89,17 @@ async def make_move(game_state: GameState) -> AIResponse:
      
         # selected_move =  random.choice(game_state.valid_moves) # change logic thuật toán AI của bạn ở đây
         # print(f"AI selected move: {selected_move}")
+        
+        
+        
+        
         return AIResponse(move=best_move)
     except Exception as e:
         if game_state.valid_moves:
+            
             return AIResponse(move=game_state.valid_moves[0])
         raise HTTPException(status_code=400, detail=str(e))
-
+    
+    
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8080)
