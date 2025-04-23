@@ -4,7 +4,7 @@ import uvicorn
 from pydantic import BaseModel
 from typing import List, Optional
 from fastapi.middleware.cors import CORSMiddleware
-from bot import ConnectFourAI, ConnectFour
+from bot import ConnectFourAI, ConnectFour, get_best_move
 import copy
 import time
 import connect4_ai
@@ -87,8 +87,7 @@ async def make_move(game_state: GameState) -> AIResponse:
                     game.heights[col] = row + 1
         
         # Determine whose turn it is based on the number of pieces
-        player1_pieces = sum(row.count(1) for row in game.board)
-        player2_pieces = sum(row.count(2) for row in game.board)
+
         current_player = game_state.current_player
         ai_player = current_player
         print("Current board state:")
@@ -117,9 +116,12 @@ async def make_move(game_state: GameState) -> AIResponse:
         print("\nConsulting AI...")
         start_time = time.time()
         if len(position_history) > 8:
+            print("Using position history for AI RUST decision")
             score, move_col = connect4_ai.solve_position(position_history)
         else:
-            score, move_col = ai.find_best_move(game, ai_player)
+            print("Using AI decision tree")
+            score, move_col = get_best_move(position_history)
+            # score, move_col = ai.find_best_move(game, ai_player)
         elapsed = time.time() - start_time
         print(f"AI suggested move (0-based): {move_col} (score: {score})")
         print(f"Decision time: {elapsed:.3f} seconds")
@@ -132,6 +134,7 @@ async def make_move(game_state: GameState) -> AIResponse:
             # Check for winner
             if game.is_winner(ai_player):
                 print(f"\nPlayer {ai_player} wins!")
+                return AIResponse(move=move_col)
             elif game.is_full():
                 print("\nThe game is a draw!")
         else:

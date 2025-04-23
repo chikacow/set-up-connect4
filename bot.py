@@ -2,6 +2,7 @@ import copy
 from typing import List, Dict, Tuple
 import numpy as np
 import time
+import requests
 
 class ConnectFour:
     def __init__(self):
@@ -323,6 +324,39 @@ class ConnectFourAI:
                 
         # print(f"Chose move {best_move} at depth {depth-1} with score {score}")
         return best_score, best_move
+
+
+def get_best_move(position: str, level: int = 10) -> dict:
+    """
+    Sends a request to the Connect4 API to get the best move for a given position.
+
+    Args:
+        position (str): The current board position in the API's format.
+        level (int): The difficulty level (default is 10).
+
+    Returns:
+        dict: The API response containing the best move and other details.
+    """
+    url = "https://ludolab.net/solve/connect4"
+    params = {
+        "position": position,
+        "level": level
+    }
+
+    try:
+        # Disable SSL verification
+        response = requests.get(url, params=params, verify=False)
+        response.raise_for_status()
+        result = response.json()
+        if(result):
+            best_move = max(result, key=lambda x: x['score'])
+            print("\nBest Move:")
+            print(best_move['move'])
+            return int(best_move['score']), int(best_move['move'])
+        return -1  # Parse the JSON response
+    except requests.exceptions.RequestException as e:
+        print(f"Error while connecting to the API: {e}")
+        return {}
 
 
 def main():
