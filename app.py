@@ -23,7 +23,7 @@ class GameState(BaseModel):
     board: List[List[int]]
     current_player: int
     valid_moves: List[int]
-    is_new_game: True
+    is_new_game: bool
 
 class AIResponse(BaseModel):
     move: int
@@ -31,7 +31,7 @@ class AIResponse(BaseModel):
 
 @app.get("/api/test")
 async def health_check():
-    count = count + 1
+    count += 1
     print("called: " + str(count))
     return {"status": "ok", "message": "Server is running"}
 
