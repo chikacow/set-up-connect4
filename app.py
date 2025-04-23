@@ -21,7 +21,11 @@ class GameState(BaseModel):
 
 class AIResponse(BaseModel):
     move: int
- 
+
+@app.get("/api/test")
+async def health_check():
+    return {"status": "ok", "message": "Server is running"}
+
 def print_board(board: List[List[int]]):
     """Print the board with row and column indicators"""
     print("\n  1 2 3 4 5 6 7")
