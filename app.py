@@ -36,11 +36,14 @@ async def health_check():
 @app.post("/api/connect4-move")
 async def make_move(game_state: GameState) -> AIResponse:
     try:
-        # print("Received game state:")
-        # # print(game_state)
-        # print(f"Current player: {game_state.current_player}")
-        # print(f"Valid moves: {game_state.valid_moves}")
-        # print(f"Board state:{game_state.board}")
+        
+        print("Received game state:")
+        #print(game_state)
+        print(f"Current player: {game_state.current_player}")
+        print(f"Valid moves: {game_state.valid_moves}")
+        print(f"Board state:{game_state.board}")
+        print(f"Is new game: {game_state.is_new_game}")
+        
         if not game_state.valid_moves:
             raise ValueError("Không có nước đi hợp lệ")
 
@@ -78,9 +81,9 @@ async def make_move(game_state: GameState) -> AIResponse:
         
         # Make the move
         if game.make_move(best_move, ai_player):
-            print("\nNew board state:")
-            for row in reversed(game.board):
-                print(row)
+            # print("\nNew board state:")
+            # for row in reversed(game.board):
+            #     print(row)
             
             # Check for winner
             if game.is_winner(ai_player):
