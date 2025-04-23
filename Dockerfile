@@ -20,9 +20,8 @@ RUN pip install --upgrade pip && \
 COPY . .
 
 # Build the Rust extension (if needed)
-RUN if [ -f "conv/pyproject.toml" ]; then \
-        cd conv && maturin develop --release; \
-    fi
+RUN cd conv && maturin develop --release
+    
 
 
 
