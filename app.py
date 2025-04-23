@@ -1,18 +1,22 @@
-
-
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from typing import List, Dict
+import random
 import uvicorn
-import connect4_ai
+from pydantic import BaseModel
+from typing import List, Optional
+from fastapi.middleware.cors import CORSMiddleware
+from bot import ConnectFourAI, ConnectFour
+import copy
 import time
-
+import connect4_ai
 app = FastAPI()
 
-# Store game states in memory (for production use a proper database)
-active_games: Dict[str, dict] = {}
-position_history = ""
-board = [[0 for _ in range(7)] for _ in range(6)]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class GameState(BaseModel):
     board: List[List[int]]
@@ -20,9 +24,13 @@ class GameState(BaseModel):
     valid_moves: List[int]
     is_new_game: bool
 
-
 class AIResponse(BaseModel):
     move: int
+
+position_history = ""
+board = [[0 for _ in range(7)] for _ in range(6)]
+
+
 
 @app.get("/api/test")
 async def health_check():
