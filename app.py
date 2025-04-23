@@ -58,7 +58,7 @@ def detect_opponent_move(current_board: List[List[int]], new_board: List[List[in
 @app.post("/api/connect4-move")
 async def make_move(game_state: GameState) -> AIResponse:
     global position_history
-    global board
+    global board 
     
     try:
         # Initialize position history for new game
@@ -87,7 +87,7 @@ async def make_move(game_state: GameState) -> AIResponse:
         # Get AI move
         print("\nConsulting AI...")
         start_time = time.time()
-        score, move_col = connect4_ai.solve_position(position_history)
+        score, move_col = connect4_ai.solve_position('444545332322')
         elapsed = time.time() - start_time
         
         
@@ -107,11 +107,12 @@ async def make_move(game_state: GameState) -> AIResponse:
         # Check for winner (on a copied board to avoid modifying original)
         temp_board = [row[:] for row in game_state.board]
         if make_move(temp_board, move_col, game_state.current_player):
-            board = temp_board  # Update the global board state
+             # Update the global board state
             if check_winner(temp_board, game_state.current_player):
                 print(f"Player {game_state.current_player} would win with this move!")
-                return AIResponse(move=move_col, game_over=True, winner=game_state.current_player)
+                return AIResponse(move=move_col)
         
+        board = temp_board
         return AIResponse(move=move_col)
 
     except Exception as e:
