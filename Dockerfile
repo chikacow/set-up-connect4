@@ -1,31 +1,32 @@
 FROM python:3.12-slim
 
-
 WORKDIR /app
 
-# Cài đặt dependencies cơ bản
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     && rm -rf /var/lib/apt/lists/*
 
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app
 
-# Cấu hình môi trường
-ENV PYTHONUNBUFFERED=1
-
-
-# Copy file requirements.txt và cài đặt dependencies
+# Install Python dependencies first (for better layer caching)
 COPY requirements.txt .
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
-
-# Copy mã nguồn
+# Copy the rest of the application
 COPY . .
 
+# Build the Rust extension (if needed)
+RUN if [ -f "conv/pyproject.toml" ]; then \
+        cd conv && maturin develop --release; \
+    fi
 
-# Sử dụng biến môi trường PORT (do Render cung cấp)
+# Expose the port (default to 8080 if not specified)
+ENV PORT=8080
 EXPOSE $PORT
 
-
-# Khởi chạy ứng dụng với uvicorn
-CMD uvicorn app:app --host 0.0.0.0 --port $PORT
+# Run the application
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "$PORT"]
