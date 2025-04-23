@@ -2,37 +2,41 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Cài đặt Rust và công cụ build
+# Install system dependencies including Rust toolchain
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
-    git \
-    libssl-dev \
-    pkg-config \
+    && curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
+    && export PATH="/root/.cargo/bin:$PATH" \
     && rm -rf /var/lib/apt/lists/*
 
-# Cài rustup để lấy Rust compiler
-RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
-ENV PATH="/root/.cargo/bin:$PATH"
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app \
+    PATH="/root/.cargo/bin:${PATH}" \
+    VIRTUAL_ENV=/app/venv
 
-# Tạo môi trường ảo Python
-ENV VIRTUAL_ENV=/opt/venv
+# Create and activate virtual environment
 RUN python -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# Nâng cấp pip và cài maturin trong môi trường ảo
-RUN pip install --upgrade pip
-RUN pip install maturin
-
-# Cài các thư viện Python trong requirements.txt (nếu có)
+# Install Python dependencies
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install maturin
 
-# Copy toàn bộ mã nguồn
+# Copy application code
 COPY . .
 
-# Build extension Rust bằng maturin (giả định có Cargo.toml)
-RUN maturin develop
+# Build Rust extension (corrected path to Rust project)
+RUN if [ -f "conv/Cargo.toml" ]; then \
+        cd conv && \
+        maturin develop --release; \
+    else \
+        echo "Rust project not found at conv/Cargo.toml"; \
+        exit 1; \
+    fi
 
 # Render yêu cầu cổng từ biến PORT
 EXPOSE $PORT
