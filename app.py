@@ -7,6 +7,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from bot import ConnectFourAI, ConnectFour
 import connect4_ai
 import copy
+
+
+count = 0
+
 app = FastAPI()
 
 app.add_middleware(
@@ -29,6 +33,9 @@ class AIResponse(BaseModel):
 
 @app.get("/api/test")
 async def health_check():
+    global count
+    count = count + 1
+    print("called: " + str(count))
     return {"status": "ok", "message": "Server is running"}
 
 @app.post("/api/connect4-move")
