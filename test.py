@@ -1,5 +1,5 @@
 import connect4_ai
-
+import time
 def extract_position_simple(board):
     """
     Extract position notation from the board state
@@ -77,14 +77,20 @@ def main():
                 position = extract_position_simple(board)
                 print(f"\nPosition notation: {position}")
                 print("AI's turn to make a move")
-                # move = connect4_ai.solve_position(position)
-                move = int(input("Enter column (0-6): "))
-                print(f"AI chooses column: {move}")
+                start_time = time.time()
+                score, move = connect4_ai.solve_position(position)
+                end_time = time.time() 
+                elapsed_time = end_time - start_time
+                # move = int(input("Enter column (0-6): "))
+                print(f"AI chooses column: {move} with score {score}")
+                print(f"Time taken: {elapsed_time:.4f} seconds")
+                if make_move(board, move , current_player):
+                    break
             print_board(board)
         
         current_player = 2 if current_player == 1 else 1
     
     print("\nTest complete! Final position:", position)
-
+   
 if __name__ == "__main__":
     main()
