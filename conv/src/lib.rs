@@ -57,44 +57,6 @@ impl PySolver {
 /// Solve a position directly from a move string
 #[pyfunction]
 fn solve_position(moves: &str) -> PyResult<(i32, usize)> {
-    let mut opening_database: Option<OpeningDatabase> = None;
-    let opening_database_result = OpeningDatabase::load();
-    match opening_database_result {
-        Ok(database) => {
-            opening_database = Some(database);
-        }
-        Err(err) => match err.root_cause().downcast_ref::<std::io::Error>() {
-            Some(io_error) => if let std::io::ErrorKind::NotFound = io_error.kind() {
-                loop {
-                    print!(
-                        "Opening database not found, would you like to generate one? (takes a LONG time)\ny/n: "
-                    );
-                    stdout().flush().expect("failed to flush to stdout!");
-
-                    let mut buffer = String::new();
-                    stdin.read_line(&mut buffer)?;
-
-                    match buffer.to_lowercase().chars().next() {
-                        Some(_letter @ 'y') => {
-                            OpeningDatabase::generate()?;
-                            return Ok(());
-                            // break;
-                        },
-                        Some(_letter @ 'n') => {
-                            println!("Skipping database generation, expect early AI moves to take ~10 minutes");
-                            break;
-                        },
-                        _ => println!("Unknown answer given"),
-                    }
-                }
-            } else {
-                println!("Error reading opening database: {}", err.root_cause());
-            },
-            _ => println!("Error reading opening database: {}", err.root_cause()),
-        },
-    }
-    
-
     let board = bitboard::BitBoard::from_moves(moves)
         .map_err(|e| PyValueError::new_err(e.to_string()))?;
     let mut solver = solver::Solver::new(board);
