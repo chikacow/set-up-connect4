@@ -32,12 +32,13 @@ COPY . .
 # Build Rust extension (corrected path to Rust project)
 RUN if [ -f "conv/Cargo.toml" ]; then \
         cd conv && \
+        echo "Building with opening book at: $(pwd)/opening_database.bin" && \
+        [ -f "opening_database.bin" ] || echo "Warning: opening_database.bin not found!" && \
         maturin develop --release; \
-    else \
-        echo "Rust project not found at conv/Cargo.toml"; \
-        exit 1; \
     fi
-
+RUN ls -la /app/conv/ && \
+    [ -f "/app/conv/opening_database.bin" ] && \
+    echo "Opening book found!" || echo "Opening book missing!"
 # Render yêu cầu cổng từ biến PORT
 EXPOSE $PORT
 
