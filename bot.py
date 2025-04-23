@@ -281,3 +281,43 @@ export = {ConnectFour, ConnectFourAI}
 #  [2, 1, 2, 1, 2, 1, 1],
 #  [1, 2, 1, 2, 1, 2, 1]]
 #  nvnhat04
+
+def flatten_connect4(board):
+    moves = []
+    
+    # Lặp từng cột (vì người chơi thả theo cột)
+    for col in range(7):
+        for row in range(5, -1, -1):  # từ dưới lên
+            cell = board[row][col]
+            if cell != 0:
+                moves.append((row, col, cell))
+    
+    # Sắp xếp theo thời gian: càng gần đáy (row lớn hơn) thì thả trước
+    # Nhưng phải ổn định theo thời gian tổng thể -> ta cần tìm thứ tự theo lượt
+    move_sequence = []
+
+    temp_board = [[0 for _ in range(7)] for _ in range(6)]
+    total_moves = sum(cell != 0 for row in board for cell in row)
+
+    for _ in range(total_moves):
+        for col in range(7):
+            for row in range(5, -1, -1):
+                if board[row][col] != 0 and temp_board[row][col] == 0:
+                    temp_board[row][col] = board[row][col]
+                    move_sequence.append(col + 1)  # +1 vì cột bắt đầu từ 1
+                    break
+        else:
+            continue
+        if len(move_sequence) == total_moves:
+            break
+
+    return ''.join(str(x) for x in move_sequence)
+
+board_state =[  [0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [0, 0, 0, 0, 0, 0, 0],
+                    [1, 0, 0, 0, 0, 0, 0],
+                    [1, 0, 0, 2, 0, 0, 0],
+                    [1, 2, 2, 2, 1, 0, 0]]
+
+print(flatten_connect4(board_state))
