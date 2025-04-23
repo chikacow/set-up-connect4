@@ -69,7 +69,36 @@ async def make_move(game_state: GameState) -> AIResponse:
         if not game_state.valid_moves:
             print("No valid moves available - game ended")
             return AIResponse(move=-1)
+        ## Initialize game and AI instances
+           # Initialize the game and AI
+        game = ConnectFour()
+        ai = ConnectFourAI()
 
+        # Load the board state into the game
+        reversed_board = [row[:] for row in reversed(game_state.board)]
+        
+        # Load the board state into the game
+        game.board = copy.deepcopy(reversed_board)
+        
+        # Calculate the heights based on the board state
+        for col in range(game.cols):
+            for row in range(game.rows):
+                if game.board[row][col] != 0:
+                    game.heights[col] = row + 1
+        
+        # Determine whose turn it is based on the number of pieces
+        player1_pieces = sum(row.count(1) for row in game.board)
+        player2_pieces = sum(row.count(2) for row in game.board)
+        current_player = game_state.current_player
+        ai_player = current_player
+        print("Current board state:")
+        for row in reversed(game.board):
+            print(row)
+        print(f"\nCurrent player: {current_player}")
+        print(f"Valid moves: {game.get_valid_moves()}")
+        
+        # Get AI's move
+      
         # Print current board state for debugging
         print("\nCurrent board state:")
         print_board(game_state.board)
@@ -87,12 +116,28 @@ async def make_move(game_state: GameState) -> AIResponse:
         # Get AI move
         print("\nConsulting AI...")
         start_time = time.time()
-        score, move_col = connect4_ai.solve_position('444545')
+        if len(position_history) > 8:
+            score, move_col = connect4_ai.solve_position(position_history)
+        else:
+            score, move_col = ai.find_best_move(game, ai_player)
         elapsed = time.time() - start_time
-        
-        
         print(f"AI suggested move (0-based): {move_col} (score: {score})")
         print(f"Decision time: {elapsed:.3f} seconds")
+        # Make the move
+        if game.make_move(move_col, ai_player):
+            # print("\nNew board state:")
+            # for row in reversed(game.board):
+            #     print(row)
+            
+            # Check for winner
+            if game.is_winner(ai_player):
+                print(f"\nPlayer {ai_player} wins!")
+            elif game.is_full():
+                print("\nThe game is a draw!")
+        else:
+            print("Invalid move selected by AI")
+
+        
 
         # Validate move
         

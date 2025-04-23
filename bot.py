@@ -294,6 +294,7 @@ class ConnectFourAI:
         """Iterative deepening with time management"""
         start_time = time.time()
         best_move = 3  # Default center move
+        best_score = 0
         max_depth = self.max_depth
         
         # Count pieces to determine game phase
@@ -316,11 +317,12 @@ class ConnectFourAI:
                 )
                 if move != -1:  # Only update if we got a valid move
                     best_move = move
+                    best_score = score
             except TimeoutError:
                 break  # Stop searching if we're out of time
                 
-        print(f"Chose move {best_move} at depth {depth-1} with score {score}")
-        return best_move
+        # print(f"Chose move {best_move} at depth {depth-1} with score {score}")
+        return best_score, best_move
 
 
 def main():
