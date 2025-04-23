@@ -141,7 +141,7 @@ async def make_move(game_state: GameState) -> AIResponse:
 
         # Validate move
         
-        if move_col + 1 not in game_state.valid_moves:
+        if move_col not in game_state.valid_moves:
             print(f"Warning: AI suggested invalid move {move_col}, using first valid move")
             move_col = game_state.valid_moves[0]
         
