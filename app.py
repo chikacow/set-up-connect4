@@ -11,6 +11,8 @@ app = FastAPI()
 
 # Store game states in memory (for production use a proper database)
 active_games: Dict[str, dict] = {}
+position_history = ""
+board = [[0 for _ in range(7)] for _ in range(6)]
 
 class GameState(BaseModel):
     board: List[List[int]]
