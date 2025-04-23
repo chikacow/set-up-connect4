@@ -24,9 +24,10 @@ RUN if [ -f "conv/pyproject.toml" ]; then \
         cd conv && maturin develop --release; \
     fi
 
-# Expose the port (default to 8080 if not specified)
-ENV PORT=8080
+
+
 EXPOSE $PORT
 
-# Run the application
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "$PORT"]
+
+# Khởi chạy ứng dụng với uvicorn
+CMD uvicorn app:app --host 0.0.0.0 --port $PORT
