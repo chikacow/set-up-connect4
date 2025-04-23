@@ -32,7 +32,8 @@ class AIResponse(BaseModel):
 
 @app.get("/api/test")
 async def health_check():
-    global count += 1
+    global count
+    count = count + 1
     print("called: " + str(count))
     return {"status": "ok", "message": "Server is running"}
 
