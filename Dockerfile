@@ -2,7 +2,7 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Cài đặt Rust và các công cụ build cần thiết
+# Cài đặt Rust và công cụ build
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
@@ -11,30 +11,31 @@ RUN apt-get update && apt-get install -y \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# Cài đặt Rust thông qua rustup
+# Cài rustup để lấy Rust compiler
 RUN curl https://sh.rustup.rs -sSf | bash -s -- -y
 ENV PATH="/root/.cargo/bin:$PATH"
 
-# Cài đặt maturin để build Rust extension
+# Tạo môi trường ảo Python
+ENV VIRTUAL_ENV=/opt/venv
+RUN python -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# Nâng cấp pip và cài maturin trong môi trường ảo
 RUN pip install --upgrade pip
 RUN pip install maturin
 
-# Cấu hình môi trường Python
-ENV PYTHONUNBUFFERED=1
-
-# Copy và cài đặt requirements nếu có
+# Cài các thư viện Python trong requirements.txt (nếu có)
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-RUN rustc --version && cargo --version
-# Copy mã nguồn
+# Copy toàn bộ mã nguồn
 COPY . .
 
-# Build Rust extension (giả sử bạn có file Cargo.toml ở root dự án)
+# Build extension Rust bằng maturin (giả định có Cargo.toml)
 RUN maturin develop
 
-# Sử dụng biến môi trường PORT (do Render cung cấp)
+# Render yêu cầu cổng từ biến PORT
 EXPOSE $PORT
 
-# Khởi chạy ứng dụng với uvicorn
-CMD uvicorn app:app --host 0.0.0.0 --port $PORT
+# Khởi chạy bằng uvicorn trong môi trường ảo
+CMD exec uvicorn app:app --host 0.0.0.0 --port ${PORT}
