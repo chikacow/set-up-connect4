@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from fastapi.middleware.cors import CORSMiddleware
 from bot import ConnectFourAI, ConnectFour
+import connect4_ai
 import copy
 app = FastAPI()
 
