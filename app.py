@@ -87,7 +87,7 @@ async def make_move(game_state: GameState) -> AIResponse:
         # Get AI move
         print("\nConsulting AI...")
         start_time = time.time()
-        score, move_col = connect4_ai.solve_position('444')
+        score, move_col = connect4_ai.solve_position('444545')
         elapsed = time.time() - start_time
         
         
