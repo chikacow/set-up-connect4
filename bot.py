@@ -327,16 +327,6 @@ class ConnectFourAI:
 
 
 def get_best_move(position: str, level: int = 10) -> dict:
-    """
-    Sends a request to the Connect4 API to get the best move for a given position.
-
-    Args:
-        position (str): The current board position in the API's format.
-        level (int): The difficulty level (default is 10).
-
-    Returns:
-        dict: The API response containing the best move and other details.
-    """
     url = "https://ludolab.net/solve/connect4"
     params = {
         "position": position,
@@ -352,8 +342,8 @@ def get_best_move(position: str, level: int = 10) -> dict:
             best_move = max(result, key=lambda x: x['score'])
             print("\nBest Move:")
             print(best_move['move'])
-            return int(best_move['score']), int(best_move['move'])
-        return -1  # Parse the JSON response
+            return int(best_move['score']), int(best_move['move']) - 1
+        return -1  
     except requests.exceptions.RequestException as e:
         print(f"Error while connecting to the API: {e}")
         return {}

@@ -70,7 +70,6 @@ async def make_move(game_state: GameState) -> AIResponse:
             print("No valid moves available - game ended")
             return AIResponse(move=-1)
         ## Initialize game and AI instances
-           # Initialize the game and AI
         game = ConnectFour()
         ai = ConnectFourAI()
 
@@ -103,6 +102,7 @@ async def make_move(game_state: GameState) -> AIResponse:
         print_board(game_state.board)
         print(f"Current player: {game_state.current_player}")
         print(f"Valid moves (0-based): {game_state.valid_moves}")
+        print(f"Is new game: {game_state.is_new_game}")
         print(f"Position history: {position_history}")
         # Detect opponent's move
         if 'board' in globals():
@@ -116,10 +116,10 @@ async def make_move(game_state: GameState) -> AIResponse:
         print("\nConsulting AI...")
         start_time = time.time()
         if len(position_history) > 8:
-            print("Using position history for AI RUST decision")
+            # print("Using position history for AI RUST decision")
             score, move_col = connect4_ai.solve_position(position_history)
         else:
-            print("Using AI decision tree")
+            # print("Using AI decision tree")
             score, move_col = get_best_move(position_history)
             # score, move_col = ai.find_best_move(game, ai_player)
         elapsed = time.time() - start_time
@@ -159,7 +159,8 @@ async def make_move(game_state: GameState) -> AIResponse:
             if check_winner(temp_board, game_state.current_player):
                 print(f"Player {game_state.current_player} would win with this move!")
                 return AIResponse(move=move_col)
-        
+        print(f"Board after move:")
+        print_board(temp_board)
         board = temp_board
         return AIResponse(move=move_col)
 
