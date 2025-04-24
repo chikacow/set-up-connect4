@@ -64,6 +64,7 @@ async def make_move(game_state: GameState) -> AIResponse:
         # Initialize position history for new game
         if game_state.is_new_game:
             position_history = ""
+            board = [[0 for _ in range(7)] for _ in range(6)]
             # if(game_state.current_player == 2):
             #     init_board = [[0 for _ in range(7)] for _ in range(6)]
 
