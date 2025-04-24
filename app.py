@@ -65,11 +65,12 @@ async def make_move(game_state: GameState) -> AIResponse:
         if game_state.is_new_game:
             position_history = ""
             if(game_state.current_player == 2):
-                if 'board' in globals():
-                    opponent_move_col = detect_opponent_move(board, game_state.board)
-                    if opponent_move_col != -1:
-                        print(f"Opponent moved in column: {opponent_move_col + 1}")
-                        position_history += str(opponent_move_col + 1)
+                init_board = [[0 for _ in range(7)] for _ in range(6)]
+
+                opponent_move_col = detect_opponent_move(init_board, game_state.board)
+                if opponent_move_col != -1:
+                    print(f"Opponent moved in column: {opponent_move_col + 1}")
+                    position_history += str(opponent_move_col + 1)
                 
             print("Starting new game, reset position history")
 
@@ -110,13 +111,14 @@ async def make_move(game_state: GameState) -> AIResponse:
         print(f"Current player: {game_state.current_player}")
         print(f"Valid moves (0-based): {game_state.valid_moves}")
         print(f"Is new game: {game_state.is_new_game}")
-        print(f"Position history: {position_history}")
+        
         # Detect opponent's move
         if 'board' in globals():
             opponent_move_col = detect_opponent_move(board, game_state.board)
             if opponent_move_col != -1:
                 print(f"Opponent moved in column: {opponent_move_col + 1}")
                 position_history += str(opponent_move_col + 1)
+        print(f"Position history: {position_history}")
         # Update the global board state
         board = [row[:] for row in game_state.board]
         # Get AI move
