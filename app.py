@@ -63,7 +63,14 @@ async def make_move(game_state: GameState) -> AIResponse:
     try:
         # Initialize position history for new game
         if game_state.is_new_game:
-            position_history = ""
+            if(game_state.current_player == 2):
+                if 'board' in globals():
+                    opponent_move_col = detect_opponent_move(board, game_state.board)
+                    if opponent_move_col != -1:
+                        print(f"Opponent moved in column: {opponent_move_col + 1}")
+                        position_history += str(opponent_move_col + 1)
+            else:    
+                position_history = ""
             print("Starting new game, reset position history")
 
         if not game_state.valid_moves:
