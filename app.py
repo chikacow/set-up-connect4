@@ -64,19 +64,19 @@ async def make_move(game_state: GameState) -> AIResponse:
         # Initialize position history for new game
         if game_state.is_new_game:
             position_history = ""
-            if(game_state.current_player == 2):
-                init_board = [[0 for _ in range(7)] for _ in range(6)]
+            # if(game_state.current_player == 2):
+            #     init_board = [[0 for _ in range(7)] for _ in range(6)]
 
-                opponent_move_col = detect_opponent_move(init_board, game_state.board)
-                if opponent_move_col != -1:
-                    print(f"Opponent moved in column: {opponent_move_col + 1}")
-                    position_history += str(opponent_move_col + 1)
+            #     opponent_move_col = detect_opponent_move(init_board, game_state.board)
+            #     if opponent_move_col != -1:
+            #         print(f"Opponent moved in column: {opponent_move_col + 1}")
+            #         position_history += str(opponent_move_col + 1)
                 
             print("Starting new game, reset position history")
 
         if not game_state.valid_moves:
             print("No valid moves available - game ended")
-            return AIResponse(move=-1)
+            return AIResponse(move=game_state.valid_moves[0])
         ## Initialize game and AI instances
         game = ConnectFour()
         ai = ConnectFourAI()
@@ -167,7 +167,7 @@ async def make_move(game_state: GameState) -> AIResponse:
              # Update the global board state
             if check_winner(temp_board, game_state.current_player):
                 print(f"Player {game_state.current_player} would win with this move!")
-                return AIResponse(move=move_col)
+                return AIResponse(move=game_state.valid_moves[0])
         print(f"Board after move:")
         print_board(temp_board)
         board = temp_board
