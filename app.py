@@ -125,7 +125,7 @@ async def make_move(game_state: GameState) -> AIResponse:
         # Get AI move
         print("\nConsulting AI...")
         start_time = time.time()
-        if len(position_history) > 8:
+        if len(position_history) > 16:
             # print("Using position history for AI RUST decision")
             score, move_col = connect4_ai.solve_position(position_history)
         else:
