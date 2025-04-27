@@ -55,10 +55,42 @@ impl PySolver {
 }
 
 /// Solve a position directly from a move string
+// #[pyfunction]
+// fn solve_position(moves: &str) -> PyResult<(i32, usize)> {
+//     let board = bitboard::BitBoard::from_moves(moves)
+//         .map_err(|e| PyValueError::new_err(e.to_string()))?;
+//     let mut solver = solver::Solver::new(board);
+//     Ok(solver.solve())
+// }
+
 #[pyfunction]
-fn solve_position(moves: &str) -> PyResult<(i32, usize)> {
+fn solve_position(moves: &str) -> PyResult<(i32, usize)> { 
+    let db = opening_database::OpeningDatabase::load()
+        .map_err(|e| PyValueError::new_err(e.to_string()))?;
+    let mut opening_database: Option<opening_database::OpeningDatabase> = None;
+    let opening_database_result = opening_database::OpeningDatabase::load();
+    match opening_database_result {
+        Ok(database) => {
+            opening_database = Some(database);
+        }
+        Err(err) => match err.root_cause().downcast_ref::<std::io::Error>() {
+            Some(io_error) => if let std::io::ErrorKind::NotFound = io_error.kind() {
+                loop {
+                    print!(
+                        "Opening database not found, would you like to generate one? (takes a LONG time)\ny/n: "
+                    );
+                }
+            } else {
+                println!("Error reading opening database: {}", err.root_cause());
+            },
+            _ => println!("Error reading opening database: {}", err.root_cause()),
+        },
+    }
     let board = bitboard::BitBoard::from_moves(moves)
         .map_err(|e| PyValueError::new_err(e.to_string()))?;
     let mut solver = solver::Solver::new(board);
+    if let Some(database) = opening_database.clone() {
+        solver = solver.with_opening_database(database);
+    }
     Ok(solver.solve())
 }

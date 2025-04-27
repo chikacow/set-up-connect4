@@ -125,23 +125,21 @@ async def make_move(game_state: GameState) -> AIResponse:
         # Get AI move
         print("\nConsulting AI...")
         start_time = time.time()
-        if len(position_history) > 16:
-            # print("Using position history for AI RUST decision")
-            score, move_col = connect4_ai.solve_position(position_history)
-        else:
-            # print("Using AI decision tree")
-            score, move_col = get_best_move(position_history)
-            # score, move_col = ai.find_best_move(game, ai_player)
+        score, move_col = connect4_ai.solve_position(position_history)
+        
+        # if len(position_history) > 16:
+        #     # print("Using position history for AI RUST decision")
+        #     score, move_col = connect4_ai.solve_position(position_history)
+        # else:
+        #     # print("Using AI decision tree")
+        #     score, move_col = get_best_move(position_history)
+
         elapsed = time.time() - start_time
         print(f"AI suggested move (0-based): {move_col} (score: {score})")
         print(f"Decision time: {elapsed:.3f} seconds")
+
         # Make the move
         if game.make_move(move_col, ai_player):
-            # print("\nNew board state:")
-            # for row in reversed(game.board):
-            #     print(row)
-            
-            # Check for winner
             if game.is_winner(ai_player):
                 print(f"\nPlayer {ai_player} wins!")
                 return AIResponse(move=move_col)
