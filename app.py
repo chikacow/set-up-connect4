@@ -181,9 +181,12 @@ async def make_move(game_state: GameState) -> AIResponse:
         print(f"\nCurrent player: {current_player}")
         print(f"Valid moves: {game.valid_moves}")
         print(f"Is new game: {is_new_game}")
-
+        start_time = time.time()
         best_score, best_move = ai.find_best_move(game, current_player)
         print(f"\nAI (Player {current_player}) chooses column: {best_move} with score: {best_score}")
+
+        elapsed_time = time.time() - start_time
+        print(f"AI đã suy nghĩ trong {elapsed_time:.3f} giây.")
 
         if game.make_move(best_move, current_player):
             print("\nNew board state:")

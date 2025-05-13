@@ -88,14 +88,14 @@ class ConnectFour:
 class ConnectFourAI:
     def __init__(self):
         self.max_depth = 8
-        self.CENTER_WEIGHT = 8
+        self.CENTER_WEIGHT = 10
         self.THREE_WEIGHT = 100
         self.TWO_WEIGHT = 5
         self.OPEN_THREE_WEIGHT = 150
         self.WIN_SCORE = 100000
         self.LOSE_SCORE = -100000
         self.DRAW_SCORE = 0
-        self.time_limit = 0.5
+        self.time_limit = 0.4
 
     def order_moves(self, game: ConnectFour, moves: List[int], player: int) -> List[int]:
         move_scores = []
@@ -339,10 +339,12 @@ def main(input_data: Dict):
     print(f"\nCurrent player: {current_player}")
     print(f"Valid moves: {game.valid_moves}")
     print(f"Is new game: {is_new_game}")
-
+    start_time = time.time()
+ 
     best_score, best_move = ai.find_best_move(game, current_player)
     print(f"\nAI (Player {current_player}) chooses column: {best_move} with score: {best_score}")
-
+    elapsed_time = time.time() - start_time
+    print(f"AI đã suy nghĩ trong {elapsed_time:.3f} giây.")
     if game.make_move(best_move, current_player):
         print("\nNew board state:")
         print_board(game.board)
@@ -372,7 +374,7 @@ def play():
     print("Connect 4: Người chơi vs Máy (AI)")
     print("Hai ô ngẫu nhiên bị cấm sẽ được đánh dấu bằng '#'")
     print_board(game.board)
-
+   
     while not game.is_full():
         print(f"\nLượt của người chơi {current_player}")
         print_board(game.board)
@@ -390,8 +392,11 @@ def play():
                 continue
         else:
             # Lượt của AI
+            start_time = time.time()
             print("AI đang suy nghĩ...")
             _, move = ai.find_best_move(game, current_player)
+            elapsed_time = time.time() - start_time
+            print(f"AI đã suy nghĩ trong {elapsed_time:.3f} giây.")
             print(f"AI chọn cột: {move}")
 
         if not game.make_move(move, current_player):
@@ -413,10 +418,10 @@ if __name__ == "__main__":
         "board": [
             [0, 0, -1, 0, 0, 0, 0],  # Top row in input
             [0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, -1, 0, 0]   # Bottom row in input
+            [0, 0, 0, 2, 0, 0, 0],
+            [0, 0, 0, 1, 0, 0, 0],
+            [0, 0, 2, 2, 1, 0, 0],
+            [0, 0, 1, 1, -1, 0, 0]   # Bottom row in input
         ],
         "current_player": 1,
         "valid_moves": [0, 1, 3, 4, 5, 6],
