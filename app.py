@@ -4,10 +4,11 @@ import uvicorn
 from pydantic import BaseModel
 from typing import List, Optional
 from fastapi.middleware.cors import CORSMiddleware
-from bot import ConnectFourAI, ConnectFour, get_best_move
+# from bot import ConnectFourAI, ConnectFour, get_best_move
 import copy
 import time
 import connect4_ai
+from bot_2 import ConnectFourAI, ConnectFour
 app = FastAPI()
 
 app.add_middleware(
@@ -36,14 +37,20 @@ board = [[0 for _ in range(7)] for _ in range(6)]
 async def health_check():
     return {"status": "ok", "message": "Server is running"}
 
-def print_board(board: List[List[int]]):
-    """Print the board with row and column indicators"""
-    print("\n  1 2 3 4 5 6 7")
-    print("  --------------")
-    for row in board:
-        print("| " + " ".join(str(cell) if cell != 0 else "." for cell in row) + " |")
-    print("  --------------")
+# def print_board(board: List[List[int]]):
+#     """Print the board with row and column indicators"""
+#     print("\n  1 2 3 4 5 6 7")
+#     print("  --------------")
+#     for row in board:
+#         print("| " + " ".join(str(cell) if cell != 0 else "." for cell in row) + " |")
+#     print("  --------------")
 
+def print_board(board):
+    # Print board top-down for human readability
+    for row in reversed(board):
+        print("[" + " ".join(
+            {0: ".", 1: "X", 2: "O", -1: "#"}.get(cell, "?") for cell in row
+        ) + "]")
 def detect_opponent_move(current_board: List[List[int]], new_board: List[List[int]]) -> int:
     """
     Detect the column where the opponent made a move by comparing the current board
@@ -51,7 +58,7 @@ def detect_opponent_move(current_board: List[List[int]], new_board: List[List[in
     """
     for col in range(7):  # Iterate through columns
         for row in range(6):  # Iterate through rows
-            if current_board[row][col] == 0 and new_board[row][col] != 0:
+            if current_board[row][col] == 0 and new_board[row][col] != 0 and new_board[row][col] != 3:
                 # A new piece has been added in this column
                 return col
     return -1  # Return -1 if no move is detected (shouldn't happen in a valid game)
@@ -73,104 +80,123 @@ async def make_move(game_state: GameState) -> AIResponse:
             #         print(f"Opponent moved in column: {opponent_move_col + 1}")
             #         position_history += str(opponent_move_col + 1)
                 
-            print("Starting new game, reset position history")
+        #     print("Starting new game, reset position history")
 
-        if not game_state.valid_moves:
-            print("No valid moves available - game ended")
-            return AIResponse(move=game_state.valid_moves[0])
-        ## Initialize game and AI instances
-        game = ConnectFour()
+        # if not game_state.valid_moves:
+        #     print("No valid moves available - game ended")
+        #     return AIResponse(move=game_state.valid_moves[0])
+        # ## Initialize game and AI instances
+        # game = ConnectFour()
+        # ai = ConnectFourAI()
+
+        # # Load the board state into the game
+        # reversed_board = [row[:] for row in reversed(game_state.board)]
+        
+        # # Load the board state into the game
+        # game.board = copy.deepcopy(reversed_board)
+        
+        # # Calculate the heights based on the board state
+        # for col in range(game.cols):
+        #     for row in range(game.rows):
+        #         if game.board[row][col] != 0:
+        #             game.heights[col] = row + 1
+        
+        # # Determine whose turn it is based on the number of pieces
+
+        # current_player = game_state.current_player
+        # ai_player = current_player
+        # print("Current board state:")
+        # for row in reversed(game.board):
+        #     print(row)
+        # print(f"\nCurrent player: {current_player}")
+        # print(f"Valid moves: {game.get_valid_moves()}")
+        
+        # # Get AI's move
+      
+        # # Print current board state for debugging
+        # print("\nCurrent board state:")
+        # print_board(game_state.board)
+        # print(f"Current player: {game_state.current_player}")
+        # print(f"Valid moves (0-based): {game_state.valid_moves}")
+        # print(f"Is new game: {game_state.is_new_game}")
+        
+        # # Detect opponent's move
+        # if 'board' in globals():
+        #     opponent_move_col = detect_opponent_move(board, game_state.board)
+        #     if opponent_move_col != -1:
+        #         print(f"Opponent moved in column: {opponent_move_col + 1}")
+        #         position_history += str(opponent_move_col + 1)
+        # print(f"Position history: {position_history}")
+        # # Update the global board state
+        # board = [row[:] for row in game_state.board]
+        # # Get AI move
+        # print("\nConsulting AI...")
+        # start_time = time.time()
+        # score, move_col = connect4_ai.solve_position(position_history)
+
+        # elapsed = time.time() - start_time
+        # print(f"AI suggested move (0-based): {move_col} (score: {score})")
+        # print(f"Decision time: {elapsed:.3f} seconds")
+
+        # if move_col not in game_state.valid_moves:
+        #     print(f"Warning: AI suggested invalid move {move_col}, using first valid move")
+        #     move_col = game_state.valid_moves[0]
+        # # Make the move
+        # if game.make_move(move_col, ai_player):
+        #     if game.is_winner(ai_player):
+        #         print(f"\nPlayer {ai_player} wins!")
+        #         return AIResponse(move=move_col)
+        #     elif game.is_full():
+        #         print("\nThe game is a draw!")
+        # else:
+        #     print("Invalid move selected by AI")
+
+
+        
+        # # Update position history with 1-based column number
+        # position_history += str(move_col + 1)
+        # print(f"Updated position history: {position_history}")
+
+        # # Check for winner (on a copied board to avoid modifying original)
+        # temp_board = [row[:] for row in game_state.board]
+        # if make_move(temp_board, move_col, game_state.current_player):
+        #      # Update the global board state
+        #     if check_winner(temp_board, game_state.current_player):
+        #         print(f"Player {game_state.current_player} would win with this move!")
+        #         return AIResponse(move=game_state.valid_moves[0])
+        # print(f"Board after move:")
+        # print_board(temp_board)
+        # board = temp_board
+        board = game_state.board
+        current_player = game_state.current_player
+        valid_moves = game_state.valid_moves
+        is_new_game = game_state.is_new_game
+        reversed_board = [row[:] for row in reversed(board)]
+        game = ConnectFour(reversed_board, valid_moves)
         ai = ConnectFourAI()
 
-        # Load the board state into the game
-        reversed_board = [row[:] for row in reversed(game_state.board)]
-        
-        # Load the board state into the game
-        game.board = copy.deepcopy(reversed_board)
-        
-        # Calculate the heights based on the board state
-        for col in range(game.cols):
-            for row in range(game.rows):
-                if game.board[row][col] != 0:
-                    game.heights[col] = row + 1
-        
-        # Determine whose turn it is based on the number of pieces
-
-        current_player = game_state.current_player
-        ai_player = current_player
-        print("Current board state:")
-        for row in reversed(game.board):
-            print(row)
+        print("Connect 4 AI with Input Board")
+        print("Current board state (# indicates forbidden cells):")
+        print_board(game.board)
         print(f"\nCurrent player: {current_player}")
-        print(f"Valid moves: {game.get_valid_moves()}")
-        
-        # Get AI's move
-      
-        # Print current board state for debugging
-        print("\nCurrent board state:")
-        print_board(game_state.board)
-        print(f"Current player: {game_state.current_player}")
-        print(f"Valid moves (0-based): {game_state.valid_moves}")
-        print(f"Is new game: {game_state.is_new_game}")
-        
-        # Detect opponent's move
-        if 'board' in globals():
-            opponent_move_col = detect_opponent_move(board, game_state.board)
-            if opponent_move_col != -1:
-                print(f"Opponent moved in column: {opponent_move_col + 1}")
-                position_history += str(opponent_move_col + 1)
-        print(f"Position history: {position_history}")
-        # Update the global board state
-        board = [row[:] for row in game_state.board]
-        # Get AI move
-        print("\nConsulting AI...")
-        start_time = time.time()
-        score, move_col = connect4_ai.solve_position(position_history)
-        
-        # if len(position_history) > 16:
-        #     # print("Using position history for AI RUST decision")
-        #     score, move_col = connect4_ai.solve_position(position_history)
-        # else:
-        #     # print("Using AI decision tree")
-        #     score, move_col = get_best_move(position_history)
+        print(f"Valid moves: {game.valid_moves}")
+        print(f"Is new game: {is_new_game}")
 
-        elapsed = time.time() - start_time
-        print(f"AI suggested move (0-based): {move_col} (score: {score})")
-        print(f"Decision time: {elapsed:.3f} seconds")
+        best_score, best_move = ai.find_best_move(game, current_player)
+        print(f"\nAI (Player {current_player}) chooses column: {best_move} with score: {best_score}")
 
-        # Make the move
-        if game.make_move(move_col, ai_player):
-            if game.is_winner(ai_player):
-                print(f"\nPlayer {ai_player} wins!")
-                return AIResponse(move=move_col)
+        if game.make_move(best_move, current_player):
+            print("\nNew board state:")
+            print_board(game.board)
+
+            if game.is_winner(current_player):
+                print(f"\nPlayer {current_player} wins!")
             elif game.is_full():
                 print("\nThe game is a draw!")
         else:
             print("Invalid move selected by AI")
 
-        
-
-        # Validate move
-        
-        if move_col not in game_state.valid_moves:
-            print(f"Warning: AI suggested invalid move {move_col}, using first valid move")
-            move_col = game_state.valid_moves[0]
-        
-        # Update position history with 1-based column number
-        position_history += str(move_col + 1)
-        print(f"Updated position history: {position_history}")
-
-        # Check for winner (on a copied board to avoid modifying original)
-        temp_board = [row[:] for row in game_state.board]
-        if make_move(temp_board, move_col, game_state.current_player):
-             # Update the global board state
-            if check_winner(temp_board, game_state.current_player):
-                print(f"Player {game_state.current_player} would win with this move!")
-                return AIResponse(move=game_state.valid_moves[0])
-        print(f"Board after move:")
-        print_board(temp_board)
-        board = temp_board
-        return AIResponse(move=move_col)
+        return AIResponse(move=best_move)
 
     except Exception as e:
         print(f"Error in make_move: {str(e)}")
