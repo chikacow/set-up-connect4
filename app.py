@@ -200,8 +200,8 @@ async def make_move(game_state: GameState) -> AIResponse:
             print("Invalid move selected by AI")
         if best_move not in game_state.valid_moves:
             print(f"Warning: AI suggested invalid move {best_move}, using first valid move")
-            move_col = game_state.valid_moves[0]
-        return AIResponse(move=move_col)
+            best_move = game_state.valid_moves[0]
+        return AIResponse(move=best_move)
 
     except Exception as e:
         print(f"Error in make_move: {str(e)}")
