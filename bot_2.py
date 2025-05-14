@@ -87,7 +87,7 @@ class ConnectFour:
 
 class ConnectFourAI:
     def __init__(self):
-        self.max_depth = 8
+        self.max_depth = 6
         self.CENTER_WEIGHT = 10
         self.THREE_WEIGHT = 100
         self.TWO_WEIGHT = 5
@@ -95,7 +95,7 @@ class ConnectFourAI:
         self.WIN_SCORE = 100000
         self.LOSE_SCORE = -100000
         self.DRAW_SCORE = 0
-        self.time_limit = 0.4
+        self.time_limit = 0.5
 
     def order_moves(self, game: ConnectFour, moves: List[int], player: int) -> List[int]:
         move_scores = []
@@ -295,11 +295,11 @@ class ConnectFourAI:
         pieces = sum(sum(1 for cell in row if cell in [1, 2]) for row in game.board)
 
         if pieces < 8:
-            max_depth = min(8, self.max_depth + 2)
+            max_depth = min(6, self.max_depth + 2)
         elif pieces < 24:
-            max_depth = min(10, self.max_depth + 4)
+            max_depth = min(8, self.max_depth + 4)
         else:
-            max_depth = min(12, self.max_depth + 6)
+            max_depth = min(10, self.max_depth + 6)
 
         for depth in range(1, max_depth + 1):
             try:
