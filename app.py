@@ -171,7 +171,7 @@ async def make_move(game_state: GameState) -> AIResponse:
         current_player = game_state.current_player
         valid_moves = game_state.valid_moves
         is_new_game = game_state.is_new_game
-        reversed_board = copy.deepcopy(reversed(board))
+        reversed_board = [row.copy() for row in reversed(board)]
         game = ConnectFour(reversed_board, valid_moves)
         ai = ConnectFourAI()
 
