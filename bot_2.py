@@ -1,5 +1,5 @@
 import copy
-from typing import List, Dict, Tuple
+from typing import List, Dict, Set, Tuple
 import numpy as np
 import time
 
@@ -7,44 +7,48 @@ class ConnectFour:
     def __init__(self, board: List[List[int]], valid_moves: List[int]):
         self.rows = 6
         self.cols = 7
-        # Use the provided board directly (already reversed in main)
         self.board = copy.deepcopy(board)
         self.heights = [0] * self.cols
         self.transposition_table: Dict[int, Tuple[int, int, int]] = {}
         self.valid_moves = valid_moves
-        self.forbidden_cells = set()
+        self.forbidden_cells: Set[Tuple[int, int]] = set()
 
-        # Find forbidden cells (-1) and update heights
-        for r in range(self.rows):
-            for c in range(self.cols):
+        # Initialize forbidden cells and heights
+        for c in range(self.cols):
+            # Find the lowest empty cell, respecting forbidden cells
+            self.heights[c] = 0
+            for r in range(self.rows):
                 if self.board[r][c] == -1:
                     self.forbidden_cells.add((r, c))
-                if self.board[r][c] in [1, 2, -1]:
-                    self.heights[c] = max(self.heights[c], r + 1)
+            while self.heights[c] < self.rows and (self.board[self.heights[c]][c] != 0 or (self.heights[c], c) in self.forbidden_cells):
+                self.heights[c] += 1
 
     def make_move(self, col: int, player: int) -> bool:
-        if col not in self.valid_moves:
+        if col < 0 or col >= self.cols or col not in self.valid_moves:
             return False
-        while self.heights[col] < self.rows:
-            row = self.heights[col]
-            if self.board[row][col] == 0:
-                self.board[row][col] = player
-                self.heights[col] += 1
-                self.valid_moves = self.get_valid_moves()
-                return True
-            elif self.board[row][col] == -1:
-                self.heights[col] += 1
-            else:
-                return False
-        return False
+        row = self.heights[col]
+        if row >= self.rows or self.board[row][col] != 0 or (row, col) in self.forbidden_cells:
+            return False
+        self.board[row][col] = player
+        self.heights[col] = row + 1
+        # Skip forbidden or occupied cells
+        while self.heights[col] < self.rows and (self.board[self.heights[col]][col] != 0 or (self.heights[col], col) in self.forbidden_cells):
+            self.heights[col] += 1
+        return True
 
     def undo_move(self, col: int) -> None:
-        for row in range(self.heights[col] - 1, -1, -1):
-            if self.board[row][col] in [1, 2]:
-                self.board[row][col] = 0
-                self.heights[col] = row
-                self.valid_moves = self.get_valid_moves()
-                break
+        if col < 0 or col >= self.cols:
+            return
+        row = self.heights[col] - 1
+        # Find the last placed piece, skipping forbidden or empty cells
+        while row >= 0 and (self.board[row][col] == 0 or (row, col) in self.forbidden_cells):
+            row -= 1
+        if row >= 0 and self.board[row][col] in [1, 2]:
+            self.board[row][col] = 0
+            self.heights[col] = row
+            # Ensure heights points to the next valid empty cell
+            while self.heights[col] < self.rows and (self.board[self.heights[col]][col] != 0 or (self.heights[col], col) in self.forbidden_cells):
+                self.heights[col] += 1
 
     def is_winner(self, player: int) -> bool:
         for r in range(self.rows):
@@ -72,9 +76,7 @@ class ConnectFour:
         valid = []
         for col in range(self.cols):
             row = self.heights[col]
-            while row < self.rows and self.board[row][col] == -1:
-                row += 1
-            if row < self.rows and self.board[row][col] == 0:
+            if row < self.rows and self.board[row][col] == 0 and (row, col) not in self.forbidden_cells:
                 valid.append(col)
         return valid
 
@@ -87,15 +89,16 @@ class ConnectFour:
 
 class ConnectFourAI:
     def __init__(self):
-        self.max_depth = 6
-        self.CENTER_WEIGHT = 10
-        self.THREE_WEIGHT = 100
-        self.TWO_WEIGHT = 5
-        self.OPEN_THREE_WEIGHT = 150
-        self.WIN_SCORE = 100000
-        self.LOSE_SCORE = -100000
+        self.max_depth = 12  # Increase depth for better foresight
+        self.CENTER_WEIGHT = 100
+        self.THREE_WEIGHT = 100000  # Much higher weight for three-in-a-row
+        self.TWO_WEIGHT = 50
+        self.OPEN_THREE_WEIGHT = 500000  # Higher weight for open three
+        self.WIN_SCORE = 100000000
+        self.LOSE_SCORE = -100000000
+        self.BLOCK_WIN_SCORE = 90000000  # Very high score for blocking
         self.DRAW_SCORE = 0
-        self.time_limit = 0.5
+        self.time_limit = 1
 
     def order_moves(self, game: ConnectFour, moves: List[int], player: int) -> List[int]:
         move_scores = []
@@ -110,9 +113,16 @@ class ConnectFourAI:
                 return [col]
             game.undo_move(col)
             game.make_move(col, opponent)
-            if game.is_winner(opponent):
-                score += self.WIN_SCORE // 2
+            opponent_wins = game.is_winner(opponent)
             game.undo_move(col)
+            if not opponent_wins:
+                for next_col in game.get_valid_moves():
+                    game.make_move(next_col, opponent)
+                    if game.is_winner(opponent):
+                        score += self.BLOCK_WIN_SCORE
+                    game.undo_move(next_col)
+            else:
+                score += self.BLOCK_WIN_SCORE
             score += self.evaluate_move_potential(game, col, player)
             move_scores.append((score, col))
 
@@ -121,7 +131,7 @@ class ConnectFourAI:
 
     def evaluate_move_potential(self, game: ConnectFour, col: int, player: int) -> int:
         if game.heights[col] >= game.rows:
-            return -1000
+            return -10000
         row = game.heights[col]
         score = 0
         opponent = 3 - player
@@ -164,8 +174,9 @@ class ConnectFourAI:
                 return self.TWO_WEIGHT * 2
         elif player_count == 0:
             if opponent_count == 3 and empty_count == 1:
-                return -self.THREE_WEIGHT * 2
-
+                return -100000
+            if opponent_count == 2 and empty_count == 2:
+                return -self.TWO_WEIGHT * 2
         return 0
 
     def evaluate_position(self, game: ConnectFour, player: int, depth: int) -> int:
@@ -222,15 +233,13 @@ class ConnectFourAI:
                 return self.TWO_WEIGHT
             if player_count == 1 and empty_count == 3:
                 return self.TWO_WEIGHT // 2
-
         elif player_count == 0:
             if opponent_count == 4:
                 return self.LOSE_SCORE
             if opponent_count == 3 and empty_count == 1:
-                return -self.THREE_WEIGHT * 3
+                return -100000
             if opponent_count == 2 and empty_count == 2:
                 return -self.TWO_WEIGHT
-
         return 0
 
     def negamax(self, game: ConnectFour, depth: int, alpha: int, beta: int,
@@ -254,7 +263,7 @@ class ConnectFourAI:
         if depth == 0 or game.is_terminal():
             return self.evaluate_position(game, player, depth), -1
 
-        valid_moves = self.order_moves(game, game.valid_moves, player)
+        valid_moves = self.order_moves(game, game.get_valid_moves(), player)
         if not valid_moves:
             return self.evaluate_position(game, player, depth), -1
 
@@ -270,8 +279,6 @@ class ConnectFourAI:
             if value > best_value:
                 best_value = value
                 best_move = move
-                if best_value >= beta:
-                    break
             alpha = max(alpha, best_value)
             if alpha >= beta:
                 break
@@ -288,18 +295,19 @@ class ConnectFourAI:
 
     def find_best_move(self, game: ConnectFour, player: int) -> int:
         start_time = time.time()
-        best_move = game.valid_moves[0] if game.valid_moves else 3
-        best_score = 0
+        valid_moves = game.get_valid_moves()
+        best_move = valid_moves[0] if valid_moves else -1
+        best_score = float('-inf')
         max_depth = self.max_depth
 
         pieces = sum(sum(1 for cell in row if cell in [1, 2]) for row in game.board)
 
         if pieces < 8:
-            max_depth = min(6, self.max_depth + 2)
+            max_depth = min(12, self.max_depth + 2)
         elif pieces < 24:
-            max_depth = min(8, self.max_depth + 4)
+            max_depth = min(14, self.max_depth + 4)
         else:
-            max_depth = min(10, self.max_depth + 6)
+            max_depth = min(16, self.max_depth + 6)
 
         for depth in range(1, max_depth + 1):
             try:
@@ -307,7 +315,7 @@ class ConnectFourAI:
                     game, depth, float('-inf'), float('inf'),
                     player, start_time, self.time_limit
                 )
-                if move != -1:
+                if move != -1 and score > best_score:
                     best_move = move
                     best_score = score
             except TimeoutError:
@@ -317,115 +325,7 @@ class ConnectFourAI:
 
 
 def print_board(board):
-    # Print board top-down for human readability
     for row in reversed(board):
         print("[" + " ".join(
-            {0: ".", 1: "X", 2: "O", -1: "#"}.get(cell, "?") for cell in row
+            {0: ".", 1: "O", 2: "X", -1: "#"}.get(cell, "?") for cell in row
         ) + "]")
-
-def main(input_data: Dict):
-    board = input_data["board"]
-    current_player = input_data["current_player"]
-    valid_moves = input_data["valid_moves"]
-    is_new_game = input_data["is_new_game"]
-    # Reverse the board to match algorithm's expectation (bottom row first)
-    reversed_board = [row[:] for row in reversed(board)]
-    game = ConnectFour(reversed_board, valid_moves)
-    ai = ConnectFourAI()
-
-    print("Connect 4 AI with Input Board")
-    print("Current board state (# indicates forbidden cells):")
-    print_board(game.board)
-    print(f"\nCurrent player: {current_player}")
-    print(f"Valid moves: {game.valid_moves}")
-    print(f"Is new game: {is_new_game}")
-    start_time = time.time()
- 
-    best_score, best_move = ai.find_best_move(game, current_player)
-    print(f"\nAI (Player {current_player}) chooses column: {best_move} with score: {best_score}")
-    elapsed_time = time.time() - start_time
-    print(f"AI đã suy nghĩ trong {elapsed_time:.3f} giây.")
-    if game.make_move(best_move, current_player):
-        print("\nNew board state:")
-        print_board(game.board)
-
-        if game.is_winner(current_player):
-            print(f"\nPlayer {current_player} wins!")
-        elif game.is_full():
-            print("\nThe game is a draw!")
-    else:
-        print("Invalid move selected by AI")
-
-    return best_move
-def play():
-    current_player = 1  # Player 1 is human, Player 2 is AI
-    board_init = [
-            [0, 0, -1, 0, 0, 0, 0],  # Top row in input
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, -1, 0, 0, 0]   # Bottom row in input
-    ]
-    valid_moves = [0, 1, 2, 3, 4, 5, 6]
-    game = ConnectFour(board_init, valid_moves)
-    ai = ConnectFourAI()
-
-    print("Connect 4: Người chơi vs Máy (AI)")
-    print("Hai ô ngẫu nhiên bị cấm sẽ được đánh dấu bằng '#'")
-    print_board(game.board)
-   
-    while not game.is_full():
-        print(f"\nLượt của người chơi {current_player}")
-        print_board(game.board)
-        print(f"Các cột hợp lệ: {game.get_valid_moves()}")
-
-        if current_player == 1:
-            # Lượt của người chơi (nhập từ bàn phím)
-            try:
-                move = int(input("Chọn cột (0-6): "))
-                if move not in game.get_valid_moves():
-                    print("Nước đi không hợp lệ. Thử lại.")
-                    continue
-            except ValueError:
-                print("Vui lòng nhập số nguyên hợp lệ.")
-                continue
-        else:
-            # Lượt của AI
-            start_time = time.time()
-            print("AI đang suy nghĩ...")
-            _, move = ai.find_best_move(game, current_player)
-            elapsed_time = time.time() - start_time
-            print(f"AI đã suy nghĩ trong {elapsed_time:.3f} giây.")
-            print(f"AI chọn cột: {move}")
-
-        if not game.make_move(move, current_player):
-            print("Nước đi không hợp lệ (có thể là ô cấm). Thử lại.")
-            continue
-
-        if game.is_winner(current_player):
-            print_board(game.board)
-            print(f"\nNgười chơi {current_player} thắng!")
-            break
-
-        current_player = 2 if current_player == 1 else 1  # Đổi lượt
-
-    if game.is_full() and not game.is_winner(1) and not game.is_winner(2):
-        print_board(game.board)
-        print("\nVán đấu hòa!")
-if __name__ == "__main__":
-    sample_input = {
-        "board": [
-            [0, 0, -1, 0, 0, 0, 0],  # Top row in input
-            [0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 2, 0, 0, 0],
-            [0, 0, 0, 1, 0, 0, 0],
-            [0, 0, 2, 2, 1, 0, 0],
-            [0, 0, 1, 1, -1, 0, 0]   # Bottom row in input
-        ],
-        "current_player": 1,
-        "valid_moves": [0, 1, 3, 4, 5, 6],
-        "is_new_game": True
-    }
-    main(sample_input)
-    # play()
