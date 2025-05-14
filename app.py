@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # from bot import ConnectFourAI, ConnectFour, get_best_move
 import copy
 import time
-import connect4_ai
+# import connect4_ai
 from bot_2 import ConnectFourAI, ConnectFour
 app = FastAPI()
 
@@ -198,8 +198,10 @@ async def make_move(game_state: GameState) -> AIResponse:
                 print("\nThe game is a draw!")
         else:
             print("Invalid move selected by AI")
-
-        return AIResponse(move=best_move)
+        if best_move not in game_state.valid_moves:
+            print(f"Warning: AI suggested invalid move {best_move}, using first valid move")
+            move_col = game_state.valid_moves[0]
+        return AIResponse(move=move_col)
 
     except Exception as e:
         print(f"Error in make_move: {str(e)}")
