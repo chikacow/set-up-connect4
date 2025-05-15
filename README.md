@@ -103,17 +103,6 @@ if __name__ == "__main__":
 python app.py
 ```
 
-## Triển khai public với Ngrok
-
-Để server của bạn có thể truy cập được từ internet, bạn có thể sử dụng Ngrok:
-
-1. Tải và cài đặt Ngrok: https://ngrok.com/download
-2. Chạy server FastAPI của bạn (mặc định cổng 8080)
-3. Trong terminal khác, chạy lệnh:
-```bash
-ngrok http 8080
-```
-4. Sao chép URL Forwarding (dạng https://xxxx-xxxx.ngrok-free.app) và đăng ký với server chính.
 
 ## Phát triển thuật toán AI
 
